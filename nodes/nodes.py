@@ -41,7 +41,7 @@ class MaskContourProcessor:
                     "step": 0.001
                 }),
                 "blur_amount": ("FLOAT", {
-                    "default": 10.0,
+                    "default": 5.0,
                     "min": 0.0,
                     "max": 20.0,
                     "step": 0.1
