@@ -441,21 +441,9 @@ class MaskContourProcessor:
             )
             effects_data.append(effect)
 
-        # Debug: Check if effects_data is being generated
-        if not effects_data:
-            print("No effects data generated.")
-        else:
-            print(f"Generated {len(effects_data)} effects.")
-
         # Render all effects
         for effect in effects_data:
             output_mask = self.render_effect_to_mask(output_mask, effect)
-
-        # Debug: Check if output_mask has been modified
-        if np.any(output_mask != mask_np):
-            print("Output mask has been modified.")
-        else:
-            print("Output mask is unchanged.")
 
         return (torch.from_numpy(output_mask),)
 
