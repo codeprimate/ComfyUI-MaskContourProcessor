@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mask Contour Processor v0.5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes errorFlash {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            50% { box-shadow: 0 0 40px 10px rgba(239, 68, 68, 0.7); }
+        }
+        @keyframes successFlash {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+            50% { box-shadow: 0 0 20px 0 rgba(34, 197, 94, 0.5); }
+        }
+        .error-flash {
+            animation: errorFlash 0.8s ease-out;
+        }
+        .success-flash {
+            animation: successFlash 0.8s ease-out;
+        }
+        
+        #dropZone {
+            transition: all 0.3s ease;
+            opacity: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+        }
+        
+        #dropZone:hover,
+        #dropZone.drag-active {
+            opacity: 1;
+            border-color: #3b82f6; /* Tailwind's blue-500 */
+            box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.1); /* Subtle inner glow */
+        }
+
+        .download-btn {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.2);
+        }
+
+        @keyframes explode {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .exploding {
+            animation: explode 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="p-5 font-sans bg-gray-100">
+    <main class="container max-w-[850px] mx-auto">
+        <!-- Controls Section -->
+        <section class="flex items-center gap-4 mb-4">
+            <button 
+                onclick="regenerateMask()" 
+                class="px-5 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-base cursor-pointer transition-colors"
+            >
+                Generate New Mask
+            </button>
+            
+            <!-- Line Length Control -->
+            <div class="flex items-center gap-2">
+                <label for="lineLength" class="text-sm text-gray-700">Line Length:</label>
+                <input 
+                    type="range" 
+                    id="lineLength" 
+                    min="0" 
+                    max="3" 
+                    step="0.01"
+                    value="1"
+                    class="w-32 cursor-pointer"
+                    oninput="updateLineLength(this.value)"
+                >
+                <span id="lineLengthValue" class="text-sm text-gray-700 font-mono">1</span>
+            </div>
+
+            <!-- Line Spacing Control -->
+            <div class="flex items-center gap-2">
+                <label for="numLines" class="text-sm text-gray-700">Line Count:</label>
+                <input 
+                    type="range" 
+                    id="numLines" 
+                    min="1" 
+                    max="40" 
+                    value="10"
+                    class="w-32 cursor-pointer"
+                    oninput="updateNumLines(this.value)"
+                >
+                <span id="numLinesValue" class="text-sm text-gray-700 font-mono">10</span>
+            </div>
+
+            <!-- Line Width Control -->
+            <div class="flex items-center gap-2">
+                <label for="lineWidth" class="text-sm text-gray-700">Line Width:</label>
+                <input 
+                    type="range" 
+                    id="lineWidth" 
+                    min="0" 
+                    max="100" 
+                    value="1"
+                    step="0.1"
+                    class="w-32 cursor-pointer"
+                    oninput="updateLineWidth(this.value)"
+                >
+                <span id="lineWidthValue" class="text-sm text-gray-700 font-mono">0.010</span>
+            </div>
+        </section>
+        
+        <!-- Canvas Section -->
+        <section class="flex gap-5">
+            <div class="relative group">
+                <canvas 
+                    id="inputCanvas" 
+                    width="400" 
+                    height="400" 
+                    class="bg-white border border-gray-300 rounded shadow-sm"
+                    aria-label="Input mask canvas"
+                ></canvas>
+                <div 
+                    id="dropZone" 
+                    class="absolute inset-0 rounded flex items-center justify-center"
+                >
+                    <div class="text-center">
+                        <svg class="w-8 h-8 mx-auto mb-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="text-sm text-gray-600">Drop image here</p>
+                    </div>
+                </div>
+            </div>
+            <div class="relative group">
+                <canvas 
+                    id="outputCanvas" 
+                    width="400" 
+                    height="400" 
+                    class="bg-white border border-gray-300 rounded shadow-sm"
+                    aria-label="Output mask canvas with contour lines"
+                ></canvas>
+                <button 
+                    onclick="downloadCanvas('output')" 
+                    class="download-btn opacity-0 group-hover:opacity-100"
+                    aria-label="Download output canvas"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/maskProcessor.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>

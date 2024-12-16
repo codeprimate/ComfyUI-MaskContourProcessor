@@ -1,0 +1,54 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+AMPLITUDE_DECAY_MOD	./nodes/nodes.py	/^    AMPLITUDE_DECAY_MOD = 0.8$/;"	v	class:MaskContourProcessor
+AMPLITUDE_INITIAL_MOD	./nodes/nodes.py	/^    AMPLITUDE_INITIAL_MOD = 0.2$/;"	v	class:MaskContourProcessor
+CATEGORY	./nodes/nodes.py	/^    CATEGORY = "mask"$/;"	v	class:MaskContourProcessor
+DEFAULT_ELEMENT_COLOR	./nodes/nodes.py	/^    DEFAULT_ELEMENT_COLOR = 'black'$/;"	v	class:MaskContourProcessor
+DEFAULT_STROKE_COLOR	./nodes/nodes.py	/^    DEFAULT_STROKE_COLOR = 'black'$/;"	v	class:MaskContourProcessor
+FUNCTION	./nodes/nodes.py	/^    FUNCTION = "process_mask"$/;"	v	class:MaskContourProcessor
+HTMLCanvasElement	./web/js/maskProcessor.test.js	/^HTMLCanvasElement.prototype.getContext = () => mockContext;$/;"	c
+HTMLCanvasElement.getContext	./web/js/maskProcessor.test.js	/^HTMLCanvasElement.prototype.getContext = () => mockContext;$/;"	m
+INPUT_TYPES	./nodes/nodes.py	/^    def INPUT_TYPES(s):$/;"	m	class:MaskContourProcessor
+MIN_LINE_WIDTH	./nodes/nodes.py	/^    MIN_LINE_WIDTH = 1.0$/;"	v	class:MaskContourProcessor
+MaskContourProcessor	./nodes/nodes.py	/^class MaskContourProcessor:$/;"	c
+NODE_CLASS_MAPPINGS	./__init__.py	/^from .nodes.nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS$/;"	i
+NODE_CLASS_MAPPINGS	./nodes/nodes.py	/^NODE_CLASS_MAPPINGS = {$/;"	v
+NODE_DISPLAY_NAME_MAPPINGS	./__init__.py	/^from .nodes.nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS$/;"	i
+NODE_DISPLAY_NAME_MAPPINGS	./nodes/nodes.py	/^NODE_DISPLAY_NAME_MAPPINGS = {$/;"	v
+RETURN_TYPES	./nodes/nodes.py	/^    RETURN_TYPES = ("MASK",)$/;"	v	class:MaskContourProcessor
+__all__	./__init__.py	/^__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']$/;"	v
+__init__	./nodes/nodes.py	/^    def __init__(self):$/;"	m	class:MaskContourProcessor
+calculate_base_line_width	./nodes/nodes.py	/^    def calculate_base_line_width(self, edge_points, line_width):$/;"	m	class:MaskContourProcessor
+calculate_mask_centroid	./nodes/nodes.py	/^    def calculate_mask_centroid(self, mask_array):$/;"	m	class:MaskContourProcessor
+circle_perimeter_aa	./nodes/nodes.py	/^from skimage.draw import line_aa, circle_perimeter_aa$/;"	i
+const.clearRect	./web/js/maskProcessor.test.js	/^    clearRect: jest.fn(),$/;"	p
+const.fillStyle	./web/js/maskProcessor.test.js	/^    fillStyle: null,$/;"	p
+const.height	./web/js/maskProcessor.test.js	/^    height: 0,$/;"	p
+const.lineCap	./web/js/maskProcessor.test.js	/^    lineCap: null,$/;"	p
+const.lineWidth	./web/js/maskProcessor.test.js	/^    lineWidth: null,$/;"	p
+const.strokeStyle	./web/js/maskProcessor.test.js	/^    strokeStyle: null,$/;"	p
+const.style	./web/js/maskProcessor.test.js	/^    style: {$/;"	p
+const.width	./web/js/maskProcessor.test.js	/^    width: 0,$/;"	p
+const.x	./web/js/maskProcessor.js	/^            x: (point.x + nextPoint.x) \/ 2,$/;"	p
+detect_edge_points	./nodes/nodes.py	/^    def detect_edge_points(self, mask_array, center):$/;"	m	class:MaskContourProcessor
+downloadCanvas	./web/js/index.js	/^function downloadCanvas(type) {$/;"	f
+generate_flame_ray_effect	./nodes/nodes.py	/^    def generate_flame_ray_effect(self, point, next_point, line_length, center, base_line_width):$/;"	m	class:MaskContourProcessor
+line_aa	./nodes/nodes.py	/^from skimage.draw import line_aa, circle_perimeter_aa$/;"	i
+maskInfo.center	./web/js/maskProcessor.js	/^            center: center,$/;"	p
+maskInfo.center	./web/js/maskProcessor.js	/^            center: { x: centerX, y: centerY },$/;"	p
+maskInfo.edgePoints	./web/js/maskProcessor.js	/^            edgePoints: this.redistributePoints(edges, 100) \/\/ Maintain consistent point count$/;"	p
+np	./nodes/nodes.py	/^import numpy as np$/;"	i
+process_mask	./nodes/nodes.py	/^    def process_mask(self, mask, line_length, line_count, line_width):$/;"	m	class:MaskContourProcessor
+redistribute_points	./nodes/nodes.py	/^    def redistribute_points(self, points, target_count):$/;"	m	class:MaskContourProcessor
+regenerateMask	./web/js/index.js	/^function regenerateMask() {$/;"	f
+render_effect_to_mask	./nodes/nodes.py	/^    def render_effect_to_mask(self, mask_array, effect_data):$/;"	m	class:MaskContourProcessor
+set_colors	./nodes/nodes.py	/^    def set_colors(self, stroke_color, element_color):$/;"	m	class:MaskContourProcessor
+torch	./nodes/nodes.py	/^import torch$/;"	i
+updateControl	./web/js/index.js	/^function updateControl(controlId, value, processorProperty, formatValue = v => v) {$/;"	f
+updateLineLength	./web/js/index.js	/^function updateLineLength(value) {$/;"	f
+updateLineWidth	./web/js/index.js	/^function updateLineWidth(value) {$/;"	f
+updateNumLines	./web/js/index.js	/^function updateNumLines(value) {$/;"	f
