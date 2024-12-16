@@ -350,7 +350,7 @@ class MaskContourProcessor:
             rr, cc, val = rr[mask], cc[mask], val[mask]
             
             # Apply line width and use white (1.0) value
-            canvas[rr, cc] = np.maximum(canvas[rr, cc], val * width)
+            canvas[rr, cc] += val * width  # Change from np.maximum to addition
         
         # Render decorative elements
         if 'decorativeElements' in effect_data:
@@ -369,10 +369,11 @@ class MaskContourProcessor:
                     mask = (rr >= 0) & (rr < height) & (cc >= 0) & (cc < width)
                     rr, cc, val = rr[mask], cc[mask], val[mask]
                     
-                    canvas[rr, cc] = np.maximum(canvas[rr, cc], val)
+                    canvas[rr, cc] += val  # Change from np.maximum to addition
         
-        # Combine with original mask using maximum value (white)
-        return np.maximum(mask_array, canvas)
+        # Combine with original mask using addition and clip to valid range
+        combined_mask = np.clip(mask_array + canvas, 0, 1)
+        return combined_mask
 
     def process_mask(self, mask, line_length, line_count, line_width):
         """Process a mask by adding flame-like contour effects.
