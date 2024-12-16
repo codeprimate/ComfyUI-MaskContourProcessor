@@ -60,29 +60,24 @@ class MaskContourProcessor:
         self.stroke_color = stroke_color
         self.element_color = element_color
 
-    def calculate_mask_centroid(self, mask_array):
-        """Calculate the center of mass (centroid) of a binary mask.
-
-        Args:
-            mask_array (ndarray): Binary mask array with values between 0 and 1
-
-        Returns:
-            tuple: (x, y) coordinates of the mask's centroid
-        """
-        # Create binary mask by thresholding at 0.5
-        binary_mask = (mask_array >= 0.5).astype(np.float32)
+    def calculate_mask_centroid(self, mask):
+        """Calculate the centroid of the mask."""
+        binary_mask = (mask > 0.5).astype(np.float32)
         
-        # Find coordinates of mask pixels
-        y_coords, x_coords = np.nonzero(binary_mask)
+        # Get non-zero coordinates
+        coords = np.nonzero(binary_mask)
         
-        if len(x_coords) == 0:  # Handle empty mask case
-            return (mask_array.shape[1] // 2, mask_array.shape[0] // 2)
+        if len(coords[0]) == 0:  # If mask is empty
+            # Return center of image
+            height, width = mask.shape
+            return width // 2, height // 2
         
-        # Calculate average x and y coordinates
-        center_x = np.mean(x_coords)
+        # Calculate centroid from non-zero coordinates
+        y_coords, x_coords = coords
         center_y = np.mean(y_coords)
+        center_x = np.mean(x_coords)
         
-        return (center_x, center_y)
+        return center_x, center_y
 
     def detect_edge_points(self, mask_array, center):
         """Detect and sort edge points of a mask in clockwise order.

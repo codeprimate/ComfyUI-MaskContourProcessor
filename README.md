@@ -1,5 +1,7 @@
 # ComfyUI Mask Contour Processor
 
+_Version 0.1_
+
 A ComfyUI node that improves inpainting results by extending mask boundaries with geometric patterns, helping create smoother transitions and better context for AI-driven image completion.
 
 ## Installation
