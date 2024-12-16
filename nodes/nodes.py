@@ -339,6 +339,8 @@ class MaskContourProcessor:
             end = segment['endPoint']
             width = segment['properties']['width']
             
+            print(f"Rendering segment from {start} to {end} with width {width}")
+            
             # Draw anti-aliased line with white (1.0) value
             rr, cc, val = line_aa(
                 int(start['y']), int(start['x']),
@@ -358,6 +360,8 @@ class MaskContourProcessor:
                 if element['type'] == 'circle':
                     pos = element['position']
                     radius = element['properties']['radius']
+                    
+                    print(f"Rendering circle at {pos} with radius {radius}")
                     
                     # Draw anti-aliased circle with white (1.0) value
                     rr, cc, val = circle_perimeter_aa(
@@ -402,16 +406,20 @@ class MaskContourProcessor:
         
         # Calculate centroid
         center = self.calculate_mask_centroid(mask_np)
+        print(f"Centroid: {center}")
         
         # Detect edge points
         edge_points = self.detect_edge_points(mask_np, center)
+        print(f"Edge Points: {len(edge_points)} found")
         
         # Calculate base line width
         base_line_width = self.calculate_base_line_width(edge_points, line_width)
+        print(f"Base Line Width: {base_line_width}")
         
         # Select evenly distributed points
         selected_points = self.redistribute_points(edge_points, line_count)
-        
+        print(f"Selected Points: {len(selected_points)}")
+
         # Generate all effects data first
         effects_data = []
         for i in range(len(selected_points)):
