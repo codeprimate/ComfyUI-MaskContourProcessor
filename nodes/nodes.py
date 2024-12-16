@@ -230,7 +230,7 @@ class MaskContourProcessor:
             'y': (point[1] + next_point[1]) / 2
         }
 
-        num_waves = max(5, line_length / 5)
+        num_waves = max(5, line_length / 10)
         initial_amplitude = line_length * self.AMPLITUDE_INITIAL_MOD
         min_line_width = self.MIN_LINE_WIDTH
 
