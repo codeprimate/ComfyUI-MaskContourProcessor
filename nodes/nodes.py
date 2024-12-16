@@ -337,11 +337,11 @@ class MaskContourProcessor:
         for segment in effect_data['path']['segments']:
             start = segment['startPoint']
             end = segment['endPoint']
-            width = segment['properties']['width']
+            line_width = segment['properties']['width']
             
-            print(f"Rendering segment from {start} to {end} with width {width}")
+            print(f"Rendering segment from {start} to {end} with width {line_width}")
             
-            # Draw anti-aliased line with white (1.0) value
+            # Draw anti-aliased line
             rr, cc, val = line_aa(
                 int(start['y']), int(start['x']),
                 int(end['y']), int(end['x'])
@@ -351,8 +351,9 @@ class MaskContourProcessor:
             mask = (rr >= 0) & (rr < height) & (cc >= 0) & (cc < width)
             rr, cc, val = rr[mask], cc[mask], val[mask]
             
-            # Apply line width and use white (1.0) value
-            canvas[rr, cc] += val * width  # Change from np.maximum to addition
+            # Apply line width and color
+            if line_width > 0:
+                canvas[rr, cc] += val * line_width * self.stroke_color
         
         # Render decorative elements
         if 'decorativeElements' in effect_data:
@@ -363,7 +364,7 @@ class MaskContourProcessor:
                     
                     print(f"Rendering circle at {pos} with radius {radius}")
                     
-                    # Draw anti-aliased circle with white (1.0) value
+                    # Draw anti-aliased circle
                     rr, cc, val = circle_perimeter_aa(
                         int(pos['y']), int(pos['x']), 
                         int(radius)
@@ -373,9 +374,9 @@ class MaskContourProcessor:
                     mask = (rr >= 0) & (rr < height) & (cc >= 0) & (cc < width)
                     rr, cc, val = rr[mask], cc[mask], val[mask]
                     
-                    canvas[rr, cc] += val  # Change from np.maximum to addition
+                    canvas[rr, cc] += val * self.element_color
         
-        # Combine with original mask using addition and clip to valid range
+        # Clip the canvas to ensure values are within the valid range
         combined_mask = np.clip(mask_array + canvas, 0, 1)
         return combined_mask
 
