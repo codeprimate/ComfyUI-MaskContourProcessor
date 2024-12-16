@@ -397,8 +397,8 @@ class MaskContourProcessor:
         # Ensure mask is 2D by taking the first batch if needed
         mask_np = mask_np[0]  # Take first batch
         
-        # Create output mask
-        output_mask = mask_np.copy()
+        # Create an empty output mask for rendering effects
+        output_mask = np.zeros_like(mask_np)
         
         # Calculate centroid
         center = self.calculate_mask_centroid(mask_np)
@@ -433,10 +433,11 @@ class MaskContourProcessor:
             )
             effects_data.append(effect)
 
-        # Render all effects
+        # Render all effects onto the empty output mask
         for effect in effects_data:
             output_mask = self.render_effect_to_mask(output_mask, effect)
 
+        # Return only the rendered effects
         return (torch.from_numpy(output_mask),)
 
 # Node class mappings
