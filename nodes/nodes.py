@@ -13,8 +13,8 @@ class MaskContourProcessor:
     AMPLITUDE_INITIAL_MOD = 0.2
     AMPLITUDE_DECAY_MOD = 0.8
     MIN_LINE_WIDTH = 1.0
-    DEFAULT_STROKE_COLOR = 'black'
-    DEFAULT_ELEMENT_COLOR = 'black'
+    DEFAULT_STROKE_COLOR = 1.0  # White (1.0) for mask
+    DEFAULT_ELEMENT_COLOR = 1.0  # White (1.0) for mask
     
     @classmethod
     def INPUT_TYPES(s):
@@ -62,17 +62,14 @@ class MaskContourProcessor:
 
     def calculate_mask_centroid(self, mask):
         """Calculate the centroid of the mask."""
-        binary_mask = (mask > 0.5).astype(np.float32)
-        
-        # Get non-zero coordinates
-        coords = np.nonzero(binary_mask)
+        # Get coordinates of white pixels (mask > 0.5)
+        coords = np.nonzero(mask > 0.5)
         
         if len(coords[0]) == 0:  # If mask is empty
-            # Return center of image
             height, width = mask.shape
             return width // 2, height // 2
         
-        # Calculate centroid from non-zero coordinates
+        # Calculate centroid from white pixel coordinates
         y_coords, x_coords = coords
         center_y = np.mean(y_coords)
         center_x = np.mean(x_coords)
@@ -89,23 +86,23 @@ class MaskContourProcessor:
         Returns:
             list: Edge points as [(x, y), ...] sorted clockwise around the center
         """
-        edges = set()  # Use set to avoid duplicates
+        edges = set()
         height, width = mask_array.shape
         
-        # Scan horizontally (left to right)
+        # Scan horizontally (left to right) - looking for transitions between 0 and 1
         for y in range(height):
-            last_pixel = 0  # Start with black
+            last_pixel = 0
             for x in range(width):
-                current_pixel = mask_array[y, x]
+                current_pixel = 1 if mask_array[y, x] > 0.5 else 0
                 if last_pixel != current_pixel:
                     edges.add((x, y))
                 last_pixel = current_pixel
                 
         # Scan vertically (top to bottom)
         for x in range(width):
-            last_pixel = 0  # Start with black
+            last_pixel = 0
             for y in range(height):
-                current_pixel = mask_array[y, x]
+                current_pixel = 1 if mask_array[y, x] > 0.5 else 0
                 if last_pixel != current_pixel:
                     edges.add((x, y))
                 last_pixel = current_pixel
@@ -342,7 +339,7 @@ class MaskContourProcessor:
             end = segment['endPoint']
             width = segment['properties']['width']
             
-            # Draw anti-aliased line
+            # Draw anti-aliased line with white (1.0) value
             rr, cc, val = line_aa(
                 int(start['y']), int(start['x']),
                 int(end['y']), int(end['x'])
@@ -352,7 +349,7 @@ class MaskContourProcessor:
             mask = (rr >= 0) & (rr < height) & (cc >= 0) & (cc < width)
             rr, cc, val = rr[mask], cc[mask], val[mask]
             
-            # Apply line width
+            # Apply line width and use white (1.0) value
             canvas[rr, cc] = np.maximum(canvas[rr, cc], val * width)
         
         # Render decorative elements
@@ -362,7 +359,7 @@ class MaskContourProcessor:
                     pos = element['position']
                     radius = element['properties']['radius']
                     
-                    # Draw anti-aliased circle
+                    # Draw anti-aliased circle with white (1.0) value
                     rr, cc, val = circle_perimeter_aa(
                         int(pos['y']), int(pos['x']), 
                         int(radius)
@@ -374,13 +371,7 @@ class MaskContourProcessor:
                     
                     canvas[rr, cc] = np.maximum(canvas[rr, cc], val)
         
-        # Debug: Check if canvas has been modified
-        if np.any(canvas > 0):
-            print("Canvas has been modified.")
-        else:
-            print("Canvas is still empty.")
-        
-        # Combine with original mask
+        # Combine with original mask using maximum value (white)
         return np.maximum(mask_array, canvas)
 
     def process_mask(self, mask, line_length, line_count, line_width):
