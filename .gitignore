@@ -30,5 +30,4 @@ logs/
 
 # Cache
 .cache/
-.temp/
-nodes/__pycache__/nodes.cpython-311.pyc
+#*/__pycache__
