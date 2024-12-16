@@ -18,23 +18,24 @@ class MaskContourProcessor:
     
     @classmethod
     def INPUT_TYPES(s):
+        """Define the input types for the processor."""
         return {
             "required": {
                 "mask": ("MASK",),
                 "line_length": ("FLOAT", {
-                    "default": 1.0, 
+                    "default": 1.2, 
                     "min": 0.0, 
                     "max": 3.0,
                     "step": 0.01
                 }),
                 "line_count": ("INT", {
-                    "default": 20,
+                    "default": 14,
                     "min": 1,
                     "max": 40,
                     "step": 1
                 }),
                 "line_width": ("FLOAT", {
-                    "default": 0.01,
+                    "default": 0.015,
                     "min": 0.0,
                     "max": 0.1,
                     "step": 0.001
@@ -47,6 +48,7 @@ class MaskContourProcessor:
     CATEGORY = "mask"
 
     def __init__(self):
+        """Initialize the processor with default colors."""
         self.stroke_color = self.DEFAULT_STROKE_COLOR
         self.element_color = self.DEFAULT_ELEMENT_COLOR
 
@@ -54,22 +56,27 @@ class MaskContourProcessor:
         """Configure the colors used for rendering effects.
 
         Args:
-            stroke_color (str): Color to use for the main flame strokes
-            element_color (str): Color to use for decorative elements
+            stroke_color (float): Color to use for the main flame strokes
+            element_color (float): Color to use for decorative elements
         """
         self.stroke_color = stroke_color
         self.element_color = element_color
 
     def calculate_mask_centroid(self, mask):
-        """Calculate the centroid of the mask."""
-        # Get coordinates of white pixels (mask > 0.5)
+        """Calculate the centroid of the mask.
+
+        Args:
+            mask (ndarray): Binary mask array
+
+        Returns:
+            tuple: (x, y) coordinates of the mask's centroid
+        """
         coords = np.nonzero(mask > 0.5)
         
         if len(coords[0]) == 0:  # If mask is empty
             height, width = mask.shape
             return width // 2, height // 2
         
-        # Calculate centroid from white pixel coordinates
         y_coords, x_coords = coords
         center_y = np.mean(y_coords)
         center_x = np.mean(x_coords)
@@ -107,7 +114,6 @@ class MaskContourProcessor:
                     edges.add((x, y))
                 last_pixel = current_pixel
         
-        # Convert to list and sort points clockwise around center
         edge_points = list(edges)
         center_x, center_y = center
         
@@ -126,7 +132,6 @@ class MaskContourProcessor:
         Returns:
             list: New list of (x, y) points evenly distributed along the contour
         """
-        # Calculate total perimeter length
         total_length = 0
         segments = []
         
@@ -143,23 +148,19 @@ class MaskContourProcessor:
                 'length': length
             })
 
-        # Redistribute points evenly
         spacing = total_length / target_count
         new_points = []
         current_dist = 0
         current_segment = 0
         
         for i in range(target_count):
-            # Skip to next segment if we've exceeded current segment length
             while current_dist >= segments[current_segment]['length']:
                 current_dist -= segments[current_segment]['length']
                 current_segment = (current_segment + 1) % len(segments)
                 
-            # Calculate interpolation factor for current position
             seg = segments[current_segment]
             t = current_dist / seg['length']
             
-            # Interpolate position
             new_points.append((
                 seg['start'][0] + (seg['end'][0] - seg['start'][0]) * t,
                 seg['start'][1] + (seg['end'][1] - seg['start'][1]) * t
@@ -182,7 +183,6 @@ class MaskContourProcessor:
         if not edge_points:
             return 10  # Default fallback value
         
-        # Calculate circumference by summing distances between consecutive points
         circumference = 0
         for i in range(len(edge_points)):
             current = edge_points[i]
@@ -194,7 +194,6 @@ class MaskContourProcessor:
             )
             circumference += distance
         
-        # Return max of 1 or circumference * line_width
         return max(1.0, circumference * line_width)
 
     def generate_flame_ray_effect(self, point, next_point, line_length, center, base_line_width):
@@ -210,21 +209,18 @@ class MaskContourProcessor:
         Returns:
             dict: Effect data containing path segments and decorative elements
         """
-        # Calculate direction vectors for current point
         dx1 = point[0] - center[0]
         dy1 = point[1] - center[1]
         length1 = np.sqrt(dx1 * dx1 + dy1 * dy1)
         normalized_dx1 = dx1 / length1
         normalized_dy1 = dy1 / length1
 
-        # Calculate direction vectors for next point
         dx2 = next_point[0] - center[0]
         dy2 = next_point[1] - center[1]
         length2 = np.sqrt(dx2 * dx2 + dy2 * dy2)
         normalized_dx2 = dx2 / length2
         normalized_dy2 = dy2 / length2
 
-        # Calculate midpoint between current and next point
         mid_point = {
             'x': (point[0] + next_point[0]) / 2,
             'y': (point[1] + next_point[1]) / 2
@@ -237,18 +233,15 @@ class MaskContourProcessor:
         segments = []
         decorative_elements = []
 
-        # Generate path segments for main flame rays
         for i in range(int(num_waves)):
             t = i / num_waves
             next_t = (i + 1) / num_waves
             
-            # Calculate current wave points
             wave_x = point[0] + normalized_dx1 * line_length * t
             wave_y = point[1] + normalized_dy1 * line_length * t
             next_wave_x = point[0] + normalized_dx1 * line_length * next_t
             next_wave_y = point[1] + normalized_dy1 * line_length * next_t
 
-            # Calculate wave amplitudes and offsets
             current_amplitude = initial_amplitude * (1 - t * self.AMPLITUDE_DECAY_MOD)
             offset_x = -normalized_dy1 * np.sin(t * np.pi * 2) * current_amplitude
             offset_y = normalized_dx1 * np.sin(t * np.pi * 2) * current_amplitude
@@ -256,21 +249,17 @@ class MaskContourProcessor:
             next_offset_x = -normalized_dy1 * np.sin(next_t * np.pi * 2) * next_amplitude
             next_offset_y = normalized_dx1 * np.sin(next_t * np.pi * 2) * next_amplitude
 
-            # Interpolate between direction vectors for virtual flame
             interpolation_factor = 0.5
             virtual_dx = normalized_dx1 * (1 - interpolation_factor) + normalized_dx2 * interpolation_factor
             virtual_dy = normalized_dy1 * (1 - interpolation_factor) + normalized_dy2 * interpolation_factor
             
-            # Normalize interpolated direction
             virtual_length = np.sqrt(virtual_dx * virtual_dx + virtual_dy * virtual_dy)
             normalized_virtual_dx = virtual_dx / virtual_length
             normalized_virtual_dy = virtual_dy / virtual_length
 
-            # Calculate virtual flame point
             virtual_flame_x = mid_point['x'] + normalized_virtual_dx * line_length * t
             virtual_flame_y = mid_point['y'] + normalized_virtual_dy * line_length * t
 
-            # Add sinusoidal pattern to virtual flame
             virtual_amplitude = current_amplitude
             virtual_offset_x = -normalized_virtual_dy * np.sin(t * np.pi * 2) * virtual_amplitude
             virtual_offset_y = normalized_virtual_dx * np.sin(t * np.pi * 2) * virtual_amplitude
@@ -290,7 +279,6 @@ class MaskContourProcessor:
                 }
             })
 
-            # Add decorative elements along virtual flame path
             start_step = 2
             if i >= start_step and i % 3 == 0:
                 progress = (i - start_step) / (num_waves - start_step)
@@ -334,7 +322,6 @@ class MaskContourProcessor:
         canvas = Image.new('F', (width, height), 0.0)
         draw = ImageDraw.Draw(canvas)
 
-        # Render path segments using cubic Bezier curves
         for segment in effect_data['path']['segments']:
             start = segment['startPoint']
             end = segment['endPoint']
@@ -348,7 +335,6 @@ class MaskContourProcessor:
             }
             line_width = segment['properties']['width']
             
-            # Draw cubic Bezier curve using Pillow
             draw.line(
                 [(start['x'], start['y']), (control1['x'], control1['y']), (control2['x'], control2['y']), (end['x'], end['y'])],
                 fill=self.stroke_color,
@@ -356,21 +342,18 @@ class MaskContourProcessor:
                 joint='curve'
             )
         
-        # Render decorative elements
         if 'decorativeElements' in effect_data:
             for element in effect_data['decorativeElements']:
                 if element['type'] == 'circle':
                     pos = element['position']
                     radius = element['properties']['radius']
                     
-                    # Draw filled circle using Pillow
                     bbox = [
                         (pos['x'] - radius, pos['y'] - radius),
                         (pos['x'] + radius, pos['y'] + radius)
                     ]
-                    draw.ellipse(bbox, fill=self.element_color)  # Fill the circle with white
+                    draw.ellipse(bbox, fill=self.element_color)
         
-        # Convert the canvas to a numpy array and combine with the mask
         canvas_np = np.array(canvas)
         combined_mask = np.clip(mask_array + canvas_np, 0, 1)
         return combined_mask
@@ -387,42 +370,27 @@ class MaskContourProcessor:
         Returns:
             tuple: Single-element tuple containing the processed mask tensor
         """
-        # Ensure mask is a 3D tensor
         if len(mask.shape) == 2:
-            mask = mask.unsqueeze(0)  # Add batch dimension if missing
+            mask = mask.unsqueeze(0)
 
-        # Convert mask to numpy
         mask_np = mask.cpu().numpy() if isinstance(mask, torch.Tensor) else np.array(mask)
+        mask_np = mask_np[0]
         
-        # Ensure mask is 2D by taking the first batch if needed
-        mask_np = mask_np[0]  # Take first batch
-        
-        # Create an empty output mask for rendering effects
         output_mask = np.zeros_like(mask_np)
         
-        # Calculate centroid
         center = self.calculate_mask_centroid(mask_np)
-        print(f"Centroid: {center}")
         
-        # Detect edge points
         edge_points = self.detect_edge_points(mask_np, center)
-        print(f"Edge Points: {len(edge_points)} found")
         
-        # Calculate base line width
         base_line_width = self.calculate_base_line_width(edge_points, line_width)
-        print(f"Base Line Width: {base_line_width}")
         
-        # Select evenly distributed points
         selected_points = self.redistribute_points(edge_points, line_count)
-        print(f"Selected Points: {len(selected_points)}")
 
-        # Generate all effects data first
         effects_data = []
         for i in range(len(selected_points)):
             point = selected_points[i]
             next_point = selected_points[(i + 1) % len(selected_points)]
             
-            # Calculate effect length based on distance from center
             dx = point[0] - center[0]
             dy = point[1] - center[1]
             distance_from_center = np.sqrt(dx*dx + dy*dy)
@@ -437,12 +405,12 @@ class MaskContourProcessor:
             )
             effects_data.append(effect)
 
-        # Render all effects onto the empty output mask
         for effect in effects_data:
             output_mask = self.render_effect_to_mask(output_mask, effect)
 
-        # Return only the rendered effects
-        return (torch.from_numpy(output_mask),)
+        combined_mask = np.clip(mask_np + output_mask, 0, 1)
+
+        return (torch.from_numpy(combined_mask),)
 
 # Node class mappings
 NODE_CLASS_MAPPINGS = {
