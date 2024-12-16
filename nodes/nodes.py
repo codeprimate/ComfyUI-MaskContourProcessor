@@ -377,51 +377,58 @@ class MaskContourProcessor:
         Returns:
             tuple: Single-element tuple containing the processed mask tensor
         """
+        # Ensure mask is a batch
         if len(mask.shape) == 2:
             mask = mask.unsqueeze(0)
 
-        mask_np = mask.cpu().numpy() if isinstance(mask, torch.Tensor) else np.array(mask)
-        mask_np = mask_np[0]
-        
-        output_mask = np.zeros_like(mask_np)
-        
-        center = self.calculate_mask_centroid(mask_np)
-        
-        edge_points = self.detect_edge_points(mask_np, center)
-        
-        base_line_width = self.calculate_base_line_width(edge_points, line_width)
-        
-        selected_points = self.redistribute_points(edge_points, line_count)
+        batch_size = mask.shape[0]
+        processed_masks = []
 
-        effects_data = []
-        for i in range(len(selected_points)):
-            point = selected_points[i]
-            next_point = selected_points[(i + 1) % len(selected_points)]
+        for i in range(batch_size):
+            mask_np = mask[i].cpu().numpy() if isinstance(mask, torch.Tensor) else np.array(mask[i])
             
-            dx = point[0] - center[0]
-            dy = point[1] - center[1]
-            distance_from_center = np.sqrt(dx*dx + dy*dy)
-            effect_length = distance_from_center * line_length
+            output_mask = np.zeros_like(mask_np)
             
-            effect = self.generate_flame_ray_effect(
-                point, 
-                next_point, 
-                effect_length, 
-                center,
-                base_line_width
-            )
-            effects_data.append(effect)
+            center = self.calculate_mask_centroid(mask_np)
+            
+            edge_points = self.detect_edge_points(mask_np, center)
+            
+            base_line_width = self.calculate_base_line_width(edge_points, line_width)
+            
+            selected_points = self.redistribute_points(edge_points, line_count)
 
-        for effect in effects_data:
-            output_mask = self.render_effect_to_mask(output_mask, effect)
+            effects_data = []
+            for j in range(len(selected_points)):
+                point = selected_points[j]
+                next_point = selected_points[(j + 1) % len(selected_points)]
+                
+                dx = point[0] - center[0]
+                dy = point[1] - center[1]
+                distance_from_center = np.sqrt(dx*dx + dy*dy)
+                effect_length = distance_from_center * line_length
+                
+                effect = self.generate_flame_ray_effect(
+                    point, 
+                    next_point, 
+                    effect_length, 
+                    center,
+                    base_line_width
+                )
+                effects_data.append(effect)
 
-        combined_mask = np.clip(mask_np + output_mask, 0, 1)
+            for effect in effects_data:
+                output_mask = self.render_effect_to_mask(output_mask, effect)
 
-        # Convert to 'L' mode and apply Gaussian blur
-        blurred_image = Image.fromarray((combined_mask * 255).astype(np.uint8), mode='L').filter(ImageFilter.GaussianBlur(blur_amount))
-        blurred_mask = np.array(blurred_image) / 255.0
+            combined_mask = np.clip(mask_np + output_mask, 0, 1)
 
-        return (torch.from_numpy(blurred_mask),)
+            # Convert to 'L' mode and apply Gaussian blur
+            blurred_image = Image.fromarray((combined_mask * 255).astype(np.uint8), mode='L').filter(ImageFilter.GaussianBlur(blur_amount))
+            blurred_mask = np.array(blurred_image) / 255.0
+
+            processed_masks.append(torch.from_numpy(blurred_mask))
+
+        # Stack processed masks to maintain batch size
+        return (torch.stack(processed_masks),)
 
 # Node class mappings
 NODE_CLASS_MAPPINGS = {
