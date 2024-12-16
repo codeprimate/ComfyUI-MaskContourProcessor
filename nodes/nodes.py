@@ -39,6 +39,12 @@ class MaskContourProcessor:
                     "min": 0.0,
                     "max": 0.1,
                     "step": 0.001
+                }),
+                "blur_amount": ("FLOAT", {
+                    "default": 10.0,
+                    "min": 0.0,
+                    "max": 20.0,
+                    "step": 0.1
                 })
             }
         }
@@ -358,7 +364,7 @@ class MaskContourProcessor:
         combined_mask = np.clip(mask_array + canvas_np, 0, 1)
         return combined_mask
 
-    def process_mask(self, mask, line_length, line_count, line_width):
+    def process_mask(self, mask, line_length, line_count, line_width, blur_amount):
         """Process a mask by adding flame-like contour effects.
 
         Args:
@@ -366,6 +372,7 @@ class MaskContourProcessor:
             line_length (float): Relative length of flame effects
             line_count (int): Number of flame effects to generate
             line_width (float): Width of effect lines
+            blur_amount (float): Amount of Gaussian blur to apply
 
         Returns:
             tuple: Single-element tuple containing the processed mask tensor
@@ -411,7 +418,7 @@ class MaskContourProcessor:
         combined_mask = np.clip(mask_np + output_mask, 0, 1)
 
         # Convert to 'L' mode and apply Gaussian blur
-        blurred_image = Image.fromarray((combined_mask * 255).astype(np.uint8), mode='L').filter(ImageFilter.GaussianBlur(10))
+        blurred_image = Image.fromarray((combined_mask * 255).astype(np.uint8), mode='L').filter(ImageFilter.GaussianBlur(blur_amount))
         blurred_mask = np.array(blurred_image) / 255.0
 
         return (torch.from_numpy(blurred_mask),)
