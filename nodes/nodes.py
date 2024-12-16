@@ -334,19 +334,24 @@ class MaskContourProcessor:
         canvas = Image.new('F', (width, height), 0.0)
         draw = ImageDraw.Draw(canvas)
 
-        # Render path segments
+        # Render path segments using Bezier curves
         for segment in effect_data['path']['segments']:
             start = segment['startPoint']
             end = segment['endPoint']
+            control = {
+                'x': (start['x'] + end['x']) / 2,
+                'y': (start['y'] + end['y']) / 2
+            }
             line_width = segment['properties']['width']
             
-            print(f"Rendering segment from {start} to {end} with width {line_width}")
+            print(f"Rendering Bezier curve from {start} to {end} with control {control} and width {line_width}")
             
-            # Draw line using Pillow
+            # Draw Bezier curve using Pillow
             draw.line(
-                [(start['x'], start['y']), (end['x'], end['y'])],
+                [(start['x'], start['y']), (control['x'], control['y']), (end['x'], end['y'])],
                 fill=self.stroke_color,
-                width=int(line_width)
+                width=int(line_width),
+                joint='curve'
             )
         
         # Render decorative elements
