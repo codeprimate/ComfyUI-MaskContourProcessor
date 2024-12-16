@@ -390,8 +390,15 @@ class MaskContourProcessor:
         Returns:
             tuple: Single-element tuple containing the processed mask tensor
         """
+        # Ensure mask is a 3D tensor
+        if len(mask.shape) == 2:
+            mask = mask.unsqueeze(0)  # Add batch dimension if missing
+
         # Convert mask to numpy
         mask_np = mask.cpu().numpy() if isinstance(mask, torch.Tensor) else np.array(mask)
+        
+        # Ensure mask is 2D by taking the first batch if needed
+        mask_np = mask_np[0]  # Take first batch
         
         # Create output mask
         output_mask = mask_np.copy()
