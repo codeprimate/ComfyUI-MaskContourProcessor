@@ -363,12 +363,12 @@ class MaskContourProcessor:
                     pos = element['position']
                     radius = element['properties']['radius']
                     
-                    # Draw circle using Pillow
+                    # Draw filled circle using Pillow
                     bbox = [
                         (pos['x'] - radius, pos['y'] - radius),
                         (pos['x'] + radius, pos['y'] + radius)
                     ]
-                    draw.ellipse(bbox, outline=self.element_color, width=1)
+                    draw.ellipse(bbox, fill=self.element_color)  # Fill the circle with white
         
         # Convert the canvas to a numpy array and combine with the mask
         canvas_np = np.array(canvas)
