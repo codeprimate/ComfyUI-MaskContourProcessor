@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from skimage.draw import line_aa, circle_perimeter_aa
+from PIL import Image, ImageDraw
 
 class MaskContourProcessor:
     """A class that adds decorative flame-like contour effects to binary masks.
@@ -321,7 +321,7 @@ class MaskContourProcessor:
         }
 
     def render_effect_to_mask(self, mask_array, effect_data):
-        """Render a flame effect onto a mask using anti-aliased drawing.
+        """Render a flame effect onto a mask using Pillow for drawing.
 
         Args:
             mask_array (ndarray): Target mask array
@@ -331,8 +331,9 @@ class MaskContourProcessor:
             ndarray: Updated mask with rendered effect
         """
         height, width = mask_array.shape
-        canvas = np.zeros((height, width), dtype=np.float32)
-        
+        canvas = Image.new('F', (width, height), 0.0)
+        draw = ImageDraw.Draw(canvas)
+
         # Render path segments
         for segment in effect_data['path']['segments']:
             start = segment['startPoint']
@@ -341,19 +342,12 @@ class MaskContourProcessor:
             
             print(f"Rendering segment from {start} to {end} with width {line_width}")
             
-            # Draw anti-aliased line
-            rr, cc, val = line_aa(
-                int(start['y']), int(start['x']),
-                int(end['y']), int(end['x'])
+            # Draw line using Pillow
+            draw.line(
+                [(start['x'], start['y']), (end['x'], end['y'])],
+                fill=self.stroke_color,
+                width=int(line_width)
             )
-            
-            # Filter valid coordinates
-            mask = (rr >= 0) & (rr < height) & (cc >= 0) & (cc < width)
-            rr, cc, val = rr[mask], cc[mask], val[mask]
-            
-            # Apply line width and color
-            if line_width > 0:
-                canvas[rr, cc] += val * line_width * self.stroke_color
         
         # Render decorative elements
         if 'decorativeElements' in effect_data:
@@ -364,20 +358,16 @@ class MaskContourProcessor:
                     
                     print(f"Rendering circle at {pos} with radius {radius}")
                     
-                    # Draw anti-aliased circle
-                    rr, cc, val = circle_perimeter_aa(
-                        int(pos['y']), int(pos['x']), 
-                        int(radius)
-                    )
-                    
-                    # Filter valid coordinates
-                    mask = (rr >= 0) & (rr < height) & (cc >= 0) & (cc < width)
-                    rr, cc, val = rr[mask], cc[mask], val[mask]
-                    
-                    canvas[rr, cc] += val * self.element_color
+                    # Draw circle using Pillow
+                    bbox = [
+                        (pos['x'] - radius, pos['y'] - radius),
+                        (pos['x'] + radius, pos['y'] + radius)
+                    ]
+                    draw.ellipse(bbox, outline=self.element_color, width=1)
         
-        # Clip the canvas to ensure values are within the valid range
-        combined_mask = np.clip(mask_array + canvas, 0, 1)
+        # Convert the canvas to a numpy array and combine with the mask
+        canvas_np = np.array(canvas)
+        combined_mask = np.clip(mask_array + canvas_np, 0, 1)
         return combined_mask
 
     def process_mask(self, mask, line_length, line_count, line_width):
