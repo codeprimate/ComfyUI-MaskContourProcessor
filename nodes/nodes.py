@@ -334,21 +334,23 @@ class MaskContourProcessor:
         canvas = Image.new('F', (width, height), 0.0)
         draw = ImageDraw.Draw(canvas)
 
-        # Render path segments using Bezier curves
+        # Render path segments using cubic Bezier curves
         for segment in effect_data['path']['segments']:
             start = segment['startPoint']
             end = segment['endPoint']
-            control = {
-                'x': (start['x'] + end['x']) / 2,
-                'y': (start['y'] + end['y']) / 2
+            control1 = {
+                'x': (2 * start['x'] + end['x']) / 3,
+                'y': (2 * start['y'] + end['y']) / 3
+            }
+            control2 = {
+                'x': (start['x'] + 2 * end['x']) / 3,
+                'y': (start['y'] + 2 * end['y']) / 3
             }
             line_width = segment['properties']['width']
             
-            print(f"Rendering Bezier curve from {start} to {end} with control {control} and width {line_width}")
-            
-            # Draw Bezier curve using Pillow
+            # Draw cubic Bezier curve using Pillow
             draw.line(
-                [(start['x'], start['y']), (control['x'], control['y']), (end['x'], end['y'])],
+                [(start['x'], start['y']), (control1['x'], control1['y']), (control2['x'], control2['y']), (end['x'], end['y'])],
                 fill=self.stroke_color,
                 width=int(line_width),
                 joint='curve'
@@ -360,8 +362,6 @@ class MaskContourProcessor:
                 if element['type'] == 'circle':
                     pos = element['position']
                     radius = element['properties']['radius']
-                    
-                    print(f"Rendering circle at {pos} with radius {radius}")
                     
                     # Draw circle using Pillow
                     bbox = [
