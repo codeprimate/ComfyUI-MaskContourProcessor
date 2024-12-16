@@ -348,17 +348,17 @@ class MaskContourProcessor:
                 joint='curve'
             )
         
-        if 'decorativeElements' in effect_data:
-            for element in effect_data['decorativeElements']:
-                if element['type'] == 'circle':
-                    pos = element['position']
-                    radius = element['properties']['radius']
+        # if 'decorativeElements' in effect_data:
+        #     for element in effect_data['decorativeElements']:
+        #         if element['type'] == 'circle':
+        #             pos = element['position']
+        #             radius = element['properties']['radius']
                     
-                    bbox = [
-                        (pos['x'] - radius, pos['y'] - radius),
-                        (pos['x'] + radius, pos['y'] + radius)
-                    ]
-                    draw.ellipse(bbox, fill=self.element_color)
+        #             bbox = [
+        #                 (pos['x'] - radius, pos['y'] - radius),
+        #                 (pos['x'] + radius, pos['y'] + radius)
+        #             ]
+        #             draw.ellipse(bbox, fill=self.element_color)
         
         canvas_np = np.array(canvas)
         combined_mask = np.clip(mask_array + canvas_np, 0, 1)
