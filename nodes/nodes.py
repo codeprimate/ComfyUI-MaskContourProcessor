@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 class MaskContourProcessor:
     """A class that adds decorative flame-like contour effects to binary masks.
@@ -410,7 +410,11 @@ class MaskContourProcessor:
 
         combined_mask = np.clip(mask_np + output_mask, 0, 1)
 
-        return (torch.from_numpy(combined_mask),)
+        # Apply Gaussian blur
+        blurred_image = Image.fromarray(combined_mask).filter(ImageFilter.GaussianBlur(10))
+        blurred_mask = np.array(blurred_image)
+
+        return (torch.from_numpy(blurred_mask),)
 
 # Node class mappings
 NODE_CLASS_MAPPINGS = {
