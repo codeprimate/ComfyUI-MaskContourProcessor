@@ -23,13 +23,13 @@ class MaskContourProcessor:
             "required": {
                 "mask": ("MASK",),
                 "line_length": ("FLOAT", {
-                    "default": 1.2, 
+                    "default": 0.5, 
                     "min": 0.0, 
                     "max": 3.0,
                     "step": 0.01
                 }),
                 "line_count": ("INT", {
-                    "default": 14,
+                    "default": 16,
                     "min": 1,
                     "max": 40,
                     "step": 1
@@ -41,9 +41,9 @@ class MaskContourProcessor:
                     "step": 0.001
                 }),
                 "blur_amount": ("FLOAT", {
-                    "default": 5.0,
+                    "default": 2.0,
                     "min": 0.0,
-                    "max": 20.0,
+                    "max": 50.0,
                     "step": 0.1
                 })
             }
