@@ -410,9 +410,9 @@ class MaskContourProcessor:
 
         combined_mask = np.clip(mask_np + output_mask, 0, 1)
 
-        # Apply Gaussian blur
-        blurred_image = Image.fromarray(combined_mask).filter(ImageFilter.GaussianBlur(10))
-        blurred_mask = np.array(blurred_image)
+        # Convert to 'L' mode and apply Gaussian blur
+        blurred_image = Image.fromarray((combined_mask * 255).astype(np.uint8), mode='L').filter(ImageFilter.GaussianBlur(10))
+        blurred_mask = np.array(blurred_image) / 255.0
 
         return (torch.from_numpy(blurred_mask),)
 
