@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-maskcontourprocessor"
+description = "A ComfyUI node that improves inpainting results by extending mask boundaries with geometric patterns, helping create smoother transitions and better context for AI-driven image completion."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["numpy>=1.20.0", "torch>=1.7.0", "Pillow"]
+
+[project.urls]
+Repository = "https://github.com/codeprimate/ComfyUI-MaskContourProcessor"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-MaskContourProcessor"
+Icon = ""
